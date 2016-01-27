@@ -53,10 +53,6 @@ class UserInfo:
 
         """
         # Choose columns from database
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        #global gcur
-        self.cur = gcur
         item = ('tu_id', 'login_name', 'username', 'password', 'seclevel', 'mobile', 'email')
         try:
             info_select = self.cur.execute("SELECT %s FROM TUser WHERE login_name = \'%s\'" % (str(item).replace('\'', '')[1:-1], user_name))
@@ -73,8 +69,6 @@ class UserInfo:
             info = dict(zip(item, info))
         except Exception as e:
             self.denied_response(e)
-        #self.conn.close()
-        #self.cur.close()
         return info
 
     def get_userid(self):
@@ -104,9 +98,6 @@ class UserInfo:
         :returns: None if the user has no secfield. else return a list of secfield
                   by searching database.
         """
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur = gcur
         secfield = None
         try:
             info_select = self.cur.execute("SELECT %s FROM TUserSecfieldRelation WHERE tu_id = %s" % ('secfield_id', uid))
@@ -123,8 +114,6 @@ class UserInfo:
             secfield = (info[0].encode("utf8")).split(",")
         except Exception as e:
             self.denied_response(e)
-        #self.conn.close()
-        #self.cur.close()
         return secfield
 
     def get_secfield_info_from_secid(self, secid):
@@ -135,9 +124,6 @@ class UserInfo:
                   secfield information by searching database.
         """
         # Choose columns from database
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur =gcur
         item = ('secfield_id', 'parent_secfd_id', 'secfield_name', 'gen_time')
         try:
             info_select = self.cur.execute("SELECT %s FROM TSecfield WHERE secfield_id = \'%s\'" %
@@ -155,8 +141,6 @@ class UserInfo:
             secfield_info = dict(zip(item, info))
         except Exception as e:
             self.denied_response(e)
-        #self.conn.close()
-        #self.cur.close()
         return secfield_info
 
     def get_parentid_secfd_from_secid(self, secid):
@@ -184,6 +168,8 @@ class UserInfo:
 
     def __init__(self, token=None, username=None, request=None):
         # Database defination
+        self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
+        self.cur = self.conn.cursor()
         self.mc_user = cache_from_env(request.environ)
         # Initialze user information by token or usernames
         if token is None and username is None:
@@ -226,9 +212,6 @@ class Secfield:
                   secfield information by searching database.
         """
         # Choose columns from database
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur=gcur
         item = ('secfield_id', 'parent_secfd_id', 'secfield_name', 'gen_time')
         try:
             info_select = self.cur.execute("SELECT %s FROM TSecfield WHERE \
@@ -246,8 +229,6 @@ class Secfield:
             secfield_info = dict(zip(item, info))
         except Exception as e:
             self.denied_response(e)
-        #self.conn.close()
-        #self.cur.close()
         return secfield_info
 
     def get_parent_id(self):
@@ -258,15 +239,10 @@ class Secfield:
 
     def test(self):
         uid = self.secfield_id.encode('utf-8')
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur=gcur
         info = self.cur.execute("select %s from TPolicy where secfield_id=%s" % ('seclass_id', uid))
         if info == 1:
             infos = self.cur.fetchone()
             dd = infos[0].encode('utf-8').split(',')
-            #self.conn.close()
-            #self.cur.close()
             return dd
         else:
             self.response = "%s" % 'Error'
@@ -277,10 +253,7 @@ class Secfield:
             self.denied_response("No secfield_id %s" % self.secfield_id)
             return "None"
         #uid = self.secfield_id.encode('utf-8')
-        uid=self.secfield_id
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur=gcur
+	uid=self.secfield_id
         info_select = self.cur.execute("SELECT %s FROM TPolicy WHERE secfield_id = %s" % ('seclass_id', uid))
         # login_name is a unique value, so the select result is only 1
         if info_select == 1:
@@ -294,9 +267,9 @@ class Secfield:
         # Database defination
         # self.mc = memcache.Client(['192.168.119.89:11211'])
         self.mc = cache_from_env(req.environ)
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-	#print "----------------",self.mc.get(str(secid))
+        self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
+        self.cur = self.conn.cursor()
+	print "----------------",self.mc.get(str(secid))
         if self.mc.get(str(secid)):
             self.secfield_id, self.parent_secfd_id, self.secfield_name = self.mc.get(str(secid)).split(',')
         else:
@@ -343,8 +316,8 @@ class Meta(object):
 
     def __init__(self, path, req):
         # Database defination
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
+        self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
+        self.cur = self.conn.cursor()
         self.mc_meta = cache_from_env(req.environ)
         obj = self.get_conobj_from_path(path)
         #obj = self.get_objname_from_path(path)
@@ -396,9 +369,6 @@ class Meta(object):
             self.denied_response(stat)
 
     def get_metadata_from_objname(self, obj):
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur=gcur
         item = ('object_id', 'object_name', 'parent_secl_id', 'obj_seclevel', 'author', 'path',
                 'subject', 'description', 'language', 'source')
         try:
@@ -416,8 +386,6 @@ class Meta(object):
             Meta_info = dict(zip(item, info))
         except Exception as e:
             return self.denied_response(e)
-        #self.conn.close()
-        #self.cur.close()
         return Meta_info
 
     def get_objname_from_path(self, path):
@@ -432,7 +400,6 @@ class Meta(object):
         else:
             obj=None
         return obj
-
     def check_path(self, path):
         # path string replace or check
         if not path:
@@ -470,9 +437,8 @@ class Object:
 
     def get_parent_seclass_from_db(self, secid):
         # Database defination
-        #self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
-        #self.cur = self.conn.cursor()
-        self.cur = gcur
+        self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
+        self.cur = self.conn.cursor()
         item = ('seclass_id', 'parent_secl_id', 'seclass_name', 'gen_time')
         try:
             info_select = self.cur.execute("select %s from TSeclass where seclass_id = \'%s\'"
@@ -517,17 +483,14 @@ class mandatory_access_control(object):
             password = row1[2].encode('utf-8')
             url = '$HOST/v1/%s%s' % (self.reseller_prefix, name)
             self.admins[name] = {'url': url, 'passwd': password}
-        conn.close()
-        cur.close()
         print "I am in mac middleware"
 
     def __call__(self, env, start_response):
 
 
-        global gcur
+
         self.conn = MySQLdb.connect(host="127.0.0.1", user="root", passwd='root', db="auth", charset="utf8")
         self.cur = self.conn.cursor()
-        gcur =self.cur
         req = Request(env)
         token = env.get('HTTP_X_AUTH_TOKEN', env.get('HTTP_X_STORAGE_TOKEN'))
         memcache_client = cache_from_env(req.environ)
@@ -614,12 +577,13 @@ class mandatory_access_control(object):
                     break
             start_response("403 Forbidden", [("Content-type", "text/plain"), ("sub", sub.seclevel),
                                              ("obj", obj_info.seclevel)])
-            self.conn.close()
-            gcur.close()
             return ["Secure field Forbidden: secure-field not match\n"]
         elif req.method == 'PUT' and obj:
             sub_classes = []
             sub_secfield = sub.secfield
+            if sub.secfield is None :
+                start_response("403 Forbidden", [("Content-type", "text/plain"), ])
+                return ["User %s does not have secfield\n" % user.username]
             for secfd in sub.secfield:
                 clas = Secfield(secfd, req).get_seclass()
                 sub_classes += clas
@@ -735,8 +699,9 @@ class mandatory_access_control(object):
                 clas = Secfield(secfd, req).get_seclass()
                 sub_classes += clas
             n = self.cur.execute("select * from TMeta where path='%s'" % obj)
+            print "obj",obj,n
             if n == 0:
-                start_response("404 Not Found", [([("Content-type", "text/plain")])])
+                start_response("404 Not Found", [("Content-type", "text/plain")])
                 return ["Not Found this File,Please Check Your file's name\n"]
             secid = self.cur.fetchone()
             parent_id = secid[2]
