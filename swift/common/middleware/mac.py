@@ -583,6 +583,7 @@ class mandatory_access_control(object):
 
         if req.method == 'GET' and obj:
             # user = UserInfo(username=self.account_name,request=req)
+            print "------GET------"
             audio = Meta(path, req)
             if audio.response != 'True':
                 start_response("111 Forbidden", [("Content-type", "text/plain")])
@@ -592,6 +593,9 @@ class mandatory_access_control(object):
                 start_response("403 Forbidden", [("Content-type", "text/plain")])
                 return user.response
             obj_info = Object(audio)
+            print "sub.......",obj_info.__dict__
+            print "subobj",sub.seclevel,obj_info.seclevel
+
             if audio.response != 'True':
                 start_response("404 Forbidden", [("Content-type", "text/plain")])
                 return audio.response

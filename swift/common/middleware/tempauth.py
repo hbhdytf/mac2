@@ -200,7 +200,7 @@ class TempAuth(object):
             password = row1[2].encode('utf-8')
             url = '$HOST/v1/%s%s' % (self.reseller_prefix, account)
             self.admins[name] = {'url': url, 'passwd': password}
-
+        #print("init=======",self.users)
     def __call__(self, env, start_response):
         """
         Accepts a standard WSGI application call, authenticating the request
@@ -221,6 +221,23 @@ class TempAuth(object):
         will be routed through the internal auth request handler (self.handle).
         This is to handle granting tokens, etc.
         """
+        #print("before----",self.users)
+        conn = MySQLdb.connect(host="localhost", user="root", passwd="root", db="auth", charset="utf8")
+        cur = conn.cursor()
+        cur1 = conn.cursor()
+        cur.execute('select * from TUser')
+        cur1.execute('select * from TAdmin')
+        account = 'mac'
+        for row in cur.fetchall():
+            user = row[3].encode('utf-8')
+            url = '$HOST/v1/%s%s' % (self.reseller_prefix, account)
+            self.users[user] = {'url': url}
+        for row1 in cur1.fetchall():
+            name = row1[1].encode('utf-8')
+            password = row1[2].encode('utf-8')
+            url = '$HOST/v1/%s%s' % (self.reseller_prefix, account)
+            self.admins[name] = {'url': url, 'passwd': password}
+        #print("after----",self.users)
         if self.allow_overrides and env.get('swift.authorize_override', False):
             return self.app(env, start_response)
         # start_response("404 Forbidden", [("Content-type", "text/plain")])
